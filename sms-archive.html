@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📨 SMS Archive Viewer</title>
+  <meta name="description" content="High-performance modern SMS archive viewer with prefix-matching search, 12,000+ record support, TXT and JSON import, and responsive dark glass UI.">
+  <meta property="og:title" content="📨 SMS Archive Viewer">
+  <meta property="og:description" content="High-performance modern SMS archive viewer with prefix-matching search, 12,000+ record support, TXT and JSON import, and responsive dark glass UI.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <style>
+    /* ==========================================================================
+       SMS ARCHIVE VIEWER - MODERN DARK GLASS STYLES
+       No external CDNs, fonts, or libraries. 100% self-contained.
+       ========================================================================== */
+    :root {
+      --bg-base: #060913;
+      --bg-gradient-start: #060913;
+      --bg-gradient-mid: #0c1427;
+      --bg-gradient-end: #070d18;
+      --surface-card: rgba(17, 24, 39, 0.72);
+      --surface-card-hover: rgba(26, 36, 58, 0.85);
+      --surface-glass: rgba(12, 18, 34, 0.88);
+      --surface-pill: rgba(30, 41, 59, 0.75);
+      --border-subtle: rgba(148, 163, 184, 0.12);
+      --border-hover: rgba(56, 189, 248, 0.35);
+      --border-accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --cyan-bright: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.18);
+      --blue-accent: #60a5fa;
+      --indigo-accent: #818cf8;
+      --emerald-accent: #34d399;
+      --amber-accent: #fbbf24;
+      --rose-accent: #fb7185;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", "Kalpurush", "SolaimanLipi", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 6px 20px -2px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 0%, #111d38 0%, var(--bg-gradient-mid) 40%, var(--bg-base) 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: 80px;
+    }
+
+    /* Accessibility focus outline */
+    :focus-visible {
+      outline: 2px solid var(--border-accent);
+      outline-offset: 2px;
+    }
+
+    /* Container */
+    .app-container {
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* Header Section */
+    .header {
+      padding: 32px 0 20px;
+      text-align: center;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan-bright);
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-badge .pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald-accent);
+      box-shadow: 0 0 8px var(--emerald-accent);
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .title {
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 35%, #818cf8 70%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 560px;
+      margin: 0 auto 20px;
+    }
+
+    /* Action Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 15px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--surface-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.25));
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #e0f2fe;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(99, 102, 241, 0.35));
+      border-color: var(--cyan-bright);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(16, 185, 129, 0.2));
+      border-color: rgba(52, 211, 153, 0.35);
+      color: #a7f3d0;
+    }
+
+    .btn-accent:hover {
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.3), rgba(16, 185, 129, 0.3));
+      border-color: var(--emerald-accent);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Sticky Search Area */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: var(--surface-glass);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-left: -16px;
+      margin-right: -16px;
+      padding: 14px 16px 12px;
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-box-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      width: 20px;
+      height: 20px;
+      color: var(--cyan-bright);
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 52px;
+      padding: 12px 90px 12px 48px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1.5px solid rgba(148, 163, 184, 0.2);
+      border-radius: var(--radius-lg);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
+      font-size: 15px;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan-bright);
+      box-shadow: 0 0 0 3px var(--cyan-glow), inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .search-actions {
+      position: absolute;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-shortcut {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .clear-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+
+    .clear-btn:hover {
+      background: rgba(244, 63, 94, 0.25);
+      color: var(--rose-accent);
+      transform: scale(1.05);
+    }
+
+    /* Live Counter & Filter Bar */
+    .meta-bar {
+      max-width: 920px;
+      margin: 10px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bengali-counter-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .bengali-counter {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      letter-spacing: 0.2px;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .english-counter {
+      font-size: 12.5px;
+      color: var(--text-dim);
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .custom-select {
+      appearance: none;
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12.5px;
+      padding: 5px 26px 5px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .custom-select:hover, .custom-select:focus {
+      border-color: var(--border-hover);
+      color: var(--text-main);
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      pointer-events: none;
+      color: var(--text-dim);
+    }
+
+    /* Alphabet Jump Bar */
+    .alphabet-bar {
+      max-width: 920px;
+      margin: 8px auto 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+    }
+
+    .alphabet-bar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .alphabet-bar::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+    }
+
+    .alpha-pill {
+      flex-shrink: 0;
+      min-width: 26px;
+      height: 24px;
+      padding: 0 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .alpha-pill:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--cyan-bright);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .alpha-pill.active {
+      background: var(--cyan-bright);
+      color: #04101e;
+      border-color: var(--cyan-bright);
+      font-weight: 700;
+    }
+
+    /* Cards Grid */
+    .messages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .sms-card {
+      position: relative;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.2s ease,
+                  box-shadow 0.2s ease,
+                  background 0.2s ease;
+      animation: fadeInCard 0.25s ease-out forwards;
+    }
+
+    @keyframes fadeInCard {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .sms-card:hover {
+      background: var(--surface-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md), 0 0 20px -4px rgba(56, 189, 248, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-name-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-index {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-name {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      letter-spacing: -0.01em;
+      word-break: break-word;
+    }
+
+    .card-name .highlight {
+      background: rgba(251, 191, 36, 0.25);
+      color: #fef08a;
+      padding: 0 2px;
+      border-radius: 3px;
+      border-bottom: 2px solid var(--amber-accent);
+    }
+
+    .card-country-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      background: var(--surface-pill);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+
+    .card-country-badge .globe-icon {
+      width: 12px;
+      height: 12px;
+      color: var(--blue-accent);
+      opacity: 0.8;
+    }
+
+    .card-body {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      background: rgba(10, 15, 29, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      user-select: text;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .card-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .card-action-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: var(--cyan-bright);
+    }
+
+    .card-action-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .card-action-btn.copied {
+      background: rgba(52, 211, 153, 0.2);
+      border-color: var(--emerald-accent);
+      color: var(--emerald-accent);
+    }
+
+    /* Quick OTP tag */
+    .otp-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px dashed rgba(251, 191, 36, 0.4);
+      border-radius: 4px;
+      color: var(--amber-accent);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: auto;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .otp-tag:hover {
+      background: rgba(251, 191, 36, 0.22);
+      border-style: solid;
+      transform: scale(1.02);
+    }
+
+    /* Empty States */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--surface-card);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-xl);
+      margin: 30px 0;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .empty-state-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .empty-state-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 440px;
+      margin: 0 auto 20px;
+    }
+
+    /* Pagination / Load More Controls */
+    .pagination-bar {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pagination-stats {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .pagination-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .page-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: var(--surface-card-hover);
+      border-color: var(--border-hover);
+      color: var(--cyan-bright);
+    }
+
+    .page-btn.active {
+      background: var(--cyan-bright);
+      border-color: var(--cyan-bright);
+      color: #04101e;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .load-more-btn {
+      width: 100%;
+      max-width: 320px;
+      height: 44px;
+      font-size: 14px;
+      font-weight: 600;
+      justify-content: center;
+    }
+
+    /* Back to Top Floating Button */
+    .back-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-hover);
+      color: var(--cyan-bright);
+      box-shadow: var(--shadow-lg), 0 0 16px rgba(56, 189, 248, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 50;
+    }
+
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .back-to-top:hover {
+      background: var(--cyan-bright);
+      color: #04101e;
+      transform: translateY(-2px);
+    }
+
+    .back-to-top svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: #0f172a;
+      border: 1px solid var(--border-accent);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast svg {
+      width: 16px;
+      height: 16px;
+      color: var(--emerald-accent);
+    }
+
+    /* Modal Dialog */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 110;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: var(--radius-xl);
+      max-width: 540px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+      transform: scale(0.95);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-backdrop.open .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cyan-bright);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .modal-body ul {
+      margin: 10px 0 10px 20px;
+    }
+
+    .modal-body code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      color: #e0f2fe;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--cyan-bright);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header {
+        padding: 20px 0 14px;
+      }
+      .title {
+        font-size: 1.75rem;
+      }
+      .subtitle {
+        font-size: 0.88rem;
+      }
+      .toolbar {
+        gap: 6px;
+      }
+      .btn {
+        padding: 6px 11px;
+        font-size: 12.5px;
+      }
+      .search-input {
+        height: 46px;
+        font-size: 15px;
+        padding-right: 70px;
+      }
+      .search-shortcut {
+        display: none;
+      }
+      .sms-card {
+        padding: 14px 15px;
+      }
+      .card-name {
+        font-size: 1rem;
+      }
+      .card-body {
+        font-size: 13.5px;
+        padding: 10px 12px;
+      }
+      .meta-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-badge">
+        <span class="pulse"></span>
+        <span>Prefix Matching Engine</span>
+      </div>
+      <h1 class="title">📨 SMS Archive</h1>
+      <p class="subtitle">Search and inspect verified SMS records with instant prefix matching on sender name, Unicode fidelity, and offline data handling.</p>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <!-- TXT Import -->
+        <label class="btn btn-primary" title="Import SMS records from a local .txt file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          <span>Import TXT</span>
+          <input type="file" id="txtFileInput" accept=".txt,text/plain" style="display: none;">
+        </label>
+
+        <!-- JSON Import -->
+        <label class="btn" title="Import records from a JSON file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Import JSON</span>
+          <input type="file" id="jsonFileInput" accept=".json,application/json" style="display: none;">
+        </label>
+
+        <!-- Load Attached File (12.6k) -->
+        <button id="loadAttachedBtn" class="btn btn-accent" title="Load the complete bundled archive file (12,675+ records)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Load Attached (12.6k)</span>
+        </button>
+
+        <!-- Export JSON -->
+        <button id="exportJsonBtn" class="btn" title="Export currently loaded records as JSON">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Export JSON</span>
+        </button>
+
+        <!-- Help Info -->
+        <button id="helpBtn" class="btn" title="Keyboard shortcuts and usage info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Help</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Sticky Glass Search Header -->
+    <div class="sticky-header" id="stickyHeader">
+      <div class="search-box-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder='Prefix search by Sender Name (e.g. "Xia", "Go", "B")...'
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        >
+
+        <div class="search-actions">
+          <span class="search-shortcut" id="shortcutBadge" title="Press / to focus">/</span>
+          <button id="clearSearchBtn" class="clear-btn" title="Clear search (Esc)" aria-label="Clear search">×</button>
+        </div>
+      </div>
+
+      <!-- Live Meta & Sorting Row -->
+      <div class="meta-bar">
+        <div class="bengali-counter-wrap">
+          <span class="bengali-counter" id="bengaliCounter">০ টি মেসেজ পাওয়া গেছে</span>
+          <span class="english-counter" id="englishCounter">(0 matching of 0 total)</span>
+        </div>
+
+        <div class="controls-row">
+          <!-- Country Filter Dropdown -->
+          <div class="select-wrap">
+            <select id="countryFilter" class="custom-select" title="Filter by country">
+              <option value="ALL">All Countries</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+
+          <!-- Sort Select -->
+          <div class="select-wrap">
+            <select id="sortSelect" class="custom-select" title="Sort order">
+              <option value="default">Original Order</option>
+              <option value="name_asc">Name (A → Z)</option>
+              <option value="name_desc">Name (Z → A)</option>
+              <option value="country_asc">Country (A → Z)</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+
+          <!-- Page Size -->
+          <div class="select-wrap">
+            <select id="pageSizeSelect" class="custom-select" title="Records per page">
+              <option value="50">50 / page</option>
+              <option value="100" selected>100 / page</option>
+              <option value="250">250 / page</option>
+              <option value="500">500 / page</option>
+              <option value="all">Show All</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Alphabet Jump Bar -->
+      <div class="alphabet-bar" id="alphabetBar" aria-label="Quick letter jump">
+        <button class="alpha-pill active" data-letter="">ALL</button>
+        <!-- Generated A-Z and # buttons -->
+      </div>
+    </div>
+
+    <!-- Active Loading Banner (hidden by default) -->
+    <div id="loadingBanner" style="display: none; padding: 16px; margin: 20px 0; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md); text-align: center;">
+      <span class="spinner" style="vertical-align: middle; margin-right: 8px;"></span>
+      <span id="loadingText" style="font-size: 14px; font-weight: 500; color: var(--cyan-bright);">Parsing records, please wait...</span>
+    </div>
+
+    <!-- Main Message Cards Container -->
+    <main id="messagesList" class="messages-list" role="feed" aria-busy="false"></main>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">🔍</div>
+      <h3 class="empty-state-title" id="emptyTitle">কোনো মেসেজ মেলেনি</h3>
+      <p class="empty-state-desc" id="emptyDesc">No SMS records match your prefix search query. Remember: search strictly matches the START of the sender name.</p>
+      <button class="btn btn-primary" id="resetSearchEmptyBtn">Clear Search</button>
+    </div>
+
+    <!-- Pagination & Load More Controls -->
+    <div id="paginationBar" class="pagination-bar" style="display: none;">
+      <button id="loadMoreBtn" class="btn btn-primary load-more-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 6 12 11 17 6"></polyline></svg>
+        <span>Load More Records</span>
+      </button>
+
+      <div class="pagination-stats" id="paginationStats">
+        Showing 1–100 of 12,675 matching records
+      </div>
+
+      <div class="pagination-buttons" id="pageNumberButtons"></div>
+    </div>
+  </div>
+
+  <!-- Back To Top Floating Button -->
+  <button id="backToTop" class="back-to-top" title="Back to top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- Floating Toast -->
+  <div id="toast" class="toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📨 SMS Archive Viewer Guide</h3>
+        <button id="closeHelpModal" class="modal-close" aria-label="Close dialog">×</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Prefix Search Requirement:</strong></p>
+        <p>Search strictly matches the <em>beginning</em> of the <code>NAME</code> field using case-insensitive <code>startsWith()</code>. For example:</p>
+        <ul>
+          <li>Typing <code>"Xia"</code> matches <strong>Xiaomi</strong>.</li>
+          <li>Typing <code>"ia"</code> will <strong>not</strong> match Xiaomi.</li>
+          <li>Typing <code>"Go"</code> matches <strong>GoDaddy</strong>, <strong>Google</strong>, <strong>GooChat</strong>.</li>
+        </ul>
+        <p style="margin-top: 12px;"><strong>Keyboard Shortcuts:</strong></p>
+        <ul>
+          <li><code>/</code> : Focus search box instantly from anywhere</li>
+          <li><code>Escape</code> : Clear search and close dialogs</li>
+          <li><code>Enter</code> : Jump to first card when searching</li>
+        </ul>
+        <p style="margin-top: 12px;"><strong>Data Import Support:</strong></p>
+        <ul>
+          <li><strong>Import TXT:</strong> Select your text file formatted with <code>NAME : ...</code>, <code>MESSAGE : ...</code>, <code>Country: ...</code></li>
+          <li><strong>Import JSON:</strong> Select a valid JSON array of SMS objects.</li>
+          <li><strong>Load Attached:</strong> Instantly loads all 12,675+ records bundled with this project.</li>
+          <li><strong>Local & Safe:</strong> 100% in-browser processing. Zero data uploaded to any server.</li>
+        </ul>
+      </div>
+      <div style="text-align: right;">
+        <button class="btn btn-primary" id="gotItBtn">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       SMS ARCHIVE ENGINE - DATA & LOGIC
+       ========================================================================== */
+
+    // ==== PASTE YOUR JSON DATA HERE ====
+    // You can replace or populate this initial array with your custom JSON data!
+    const SMS_DATA = [
+      {
+        "name": "Xiaomi",
+        "message": "Your Xiaomi Account verification code is 322512.",
+        "country": "Myanmar"
+      },
+      {
+        "name": "GoDaddy",
+        "message": "Your GoDaddy verification code is 880020.",
+        "country": "Iraq"
+      },
+      {
+        "name": "OmantelWiFi",
+        "message": "Welcome to MAF Hypermarkets. Your verification code is 34581 .\n@ezxcess.antlabs.com #34581",
+        "country": "Sri Lanka"
+      },
+      {
+        "name": "ChaletMonta",
+        "message": "Chalet Montagne\nLoc:27104\nLe:20/06/2026 +7j\nTel: +330608415338\nAdulte:1\nEnfant:0\nhttps://www.chalet-montagne.com/sms/1005417-43721-90578112a...",
+        "country": "Tunisia"
+      },
+      {
+        "name": "Pulsetic",
+        "message": "Attention! talenttv.lk went offline! Please read your email alert or log in to Pulsetic for more details.",
+        "country": "Sri Lanka"
+      },
+      {
+        "name": "Accor",
+        "message": "ALL Réservation n. QJGDHHCD confirmée.\nArrivée: 05/05/2026 pour 1 nuit.",
+        "country": "Algeria"
+      },
+      {
+        "name": "Zalim",
+        "message": "Good luck",
+        "country": "Angola"
+      },
+      {
+        "name": "RAZER",
+        "message": "[Razer] Your one time code is 162480. Do not share it with anyone.",
+        "country": "Libya"
+      },
+      {
+        "name": "Profitus",
+        "message": "RM0 Your PROFITUS verification code is 866477. This code is valid for 5 minutes. Do not share it with anyone.",
+        "country": "Malaysia ❤ 2"
+      },
+      {
+        "name": "GVRIDE",
+        "message": "Your OTP is 1373. Do not share it with anyone.",
+        "country": "Malaysia"
+      },
+      {
+        "name": "Payz",
+        "message": "Your Payz code is: 5767364. Thank you!",
+        "country": "Armenia"
+      },
+      {
+        "name": "CMB",
+        "message": "Your verification code is: 5004",
+        "country": "Malaysia"
+      },
+      {
+        "name": "Hopp",
+        "message": "<#> 要訪問您的 Hopp 帳戶，請使用代碼 1907。切勿分享此代碼。\nID: O2nnf5dp2ao",
+        "country": "Comoros"
+      },
+      {
+        "name": "Barclays",
+        "message": "Ihre Mobilnummer wurde erfolgreich auf 21629313777 aktualisiert. Bitte rufen Sie uns an, wenn Sie die Änderung nicht angefordert haben. Ihr easybank ...",
+        "country": "Tunisia"
+      },
+      {
+        "name": "AUTHY",
+        "message": "Your Twilio Authy verification code is: 959927",
+        "country": "Comoros"
+      },
+      {
+        "name": "CANBNK",
+        "message": "YourTxn No 2611053xxxx through MUSANDAM EXCHANGE for INR 5000 is credited on 04/05/2026 -with our Ref CNRBH00129374282-CanaraBank",
+        "country": "Oman"
+      },
+      {
+        "name": "Celerity",
+        "message": "Your verification code for use on BulkSMS.com : MY2GWZ",
+        "country": "Algeria"
+      },
+      {
+        "name": "CNP",
+        "message": "Votre code de sécurité CNP Assurances est : 902621 (actif pendant 5 mn)",
+        "country": "Algeria"
+      },
+      {
+        "name": "Premier",
+        "message": "Bet Password recovery code is 393082\n\n",
+        "country": "Malawi"
+      },
+      {
+        "name": "eDreams",
+        "message": "Il y a eu un changement d'horaire dans votre réservation. Cliquez ici pour vérifier les options disponibles: https://edreams.tiny.us/mryu76dm",
+        "country": "Tunisia ❤ 1"
+      },
+      {
+        "name": "OAB-INFO",
+        "message": "Orange Max it - In order to validate your account, here is the code to copy : 878101",
+        "country": "Tunisia 🔥 1"
+      },
+      {
+        "name": "MyFin",
+        "message": "<MyFin> 3D password: 947053 for payment with card 417648***4690, USD 0.00, 04/05/2026 13:53:35, META.COM",
+        "country": "Tunisia"
+      },
+      {
+        "name": "AGB",
+        "message": "Cher client, pour completer et finaliser votre transaction, saisissez votre mot de passe temporaire 521820. Ce mot de passe expire dans 10 minutes.",
+        "country": "Algeria"
+      },
+      {
+        "name": "ANAinfo",
+        "message": "RN)\n\nGATE:109\nPassenger boarding order: GROUP5",
+        "country": "Malaysia"
+      },
+      {
+        "name": "Rakuten",
+        "message": "This is your Rakuten Insight Surveys verification code, valid for 60 minutes: 546238",
+        "country": "Malaysia"
+      },
+      {
+        "name": "WAVE",
+        "message": "Samsung SM-M166P demande l'accès à votre compte Wave. Code de validation: 7656. Ne le partagez avec personne\nUikux36vqr0",
+        "country": "Niger"
+      },
+      {
+        "name": "TemuOTP",
+        "message": "Temu: 502953 est votre de code de verification. Ne le partagez avec personne.",
+        "country": "Algeria"
+      },
+      {
+        "name": "GulfAir",
+        "message": "Thank you for choosing Gulf Air, we look forward to seeing you again. Please rate your experience here https://surveys.gulfair.com/?P=JUGRMB&FN=014...",
+        "country": "Sri Lanka"
+      },
+      {
+        "name": "github",
+        "message": "912913 is your GitHub authentication code.",
+        "country": "Ghana"
+      },
+      {
+        "name": "BeReal",
+        "message": "338380 هو رمز التحقق الخاص بك ل BeReal. Your friends for real.",
+        "country": "Tunisia"
+      },
+      {
+        "name": "Claude",
+        "message": "Your Claude verification code is: 675040",
+        "country": "Algeria"
+      },
+      {
+        "name": "weplayapp",
+        "message": "[ويبلاي]رمز التحقق 4531، صالح لـ5 دقائق. لتحمي حسابك لا تخبرأحد بها.",
+        "country": "Iraq"
+      },
+      {
+        "name": "Netflix",
+        "message": "Netflix: Use this code 889788 to verify your identity. We just want to confirm it's you.",
+        "country": "Malaysia"
+      },
+      {
+        "name": "Telegram",
+        "message": "Telegram code 95426\n\nYou can also tap on this link to log in:\nhttps://t.me/login/97223",
+        "country": "Algeria"
+      },
+      {
+        "name": "Spotify",
+        "message": "Spotify code: 644979. Valid for 5 minutes",
+        "country": "Tanzania"
+      },
+      {
+        "name": "WhatsApp",
+        "message": "Your WhatsApp code: 944-180\nDon't share this code with anyone",
+        "country": "Somalia"
+      }
+    ];
+
+    // Application State
+    let allRecords = [];
+    let filteredRecords = [];
+    let currentQuery = '';
+    let selectedCountry = 'ALL';
+    let currentSort = 'default';
+    let pageSize = 100;
+    let currentPage = 1;
+    let debounceTimer = null;
+
+    // DOM Elements
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const shortcutBadge = document.getElementById('shortcutBadge');
+    const bengaliCounter = document.getElementById('bengaliCounter');
+    const englishCounter = document.getElementById('englishCounter');
+    const messagesList = document.getElementById('messagesList');
+    const emptyState = document.getElementById('emptyState');
+    const emptyTitle = document.getElementById('emptyTitle');
+    const emptyDesc = document.getElementById('emptyDesc');
+    const resetSearchEmptyBtn = document.getElementById('resetSearchEmptyBtn');
+    const countryFilter = document.getElementById('countryFilter');
+    const sortSelect = document.getElementById('sortSelect');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const alphabetBar = document.getElementById('alphabetBar');
+    const paginationBar = document.getElementById('paginationBar');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const paginationStats = document.getElementById('paginationStats');
+    const pageNumberButtons = document.getElementById('pageNumberButtons');
+    const backToTopBtn = document.getElementById('backToTop');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    const loadingBanner = document.getElementById('loadingBanner');
+    const loadingText = document.getElementById('loadingText');
+    const txtFileInput = document.getElementById('txtFileInput');
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    const loadAttachedBtn = document.getElementById('loadAttachedBtn');
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpModal = document.getElementById('closeHelpModal');
+    const gotItBtn = document.getElementById('gotItBtn');
+
+    // Bengali Digits Converter
+    const BENGALI_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    function toBengaliNumber(num) {
+      if (num === null || num === undefined) return '০';
+      const formattedEn = Number(num).toLocaleString('en-US');
+      return formattedEn.replace(/\d/g, d => BENGALI_DIGITS[d]);
+    }
+
+    // Helper: Toast notification
+    let toastTimeout = null;
+    function showToast(message, isSuccess = true) {
+      toastMsg.textContent = message;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize Records
+    function initData(records) {
+      allRecords = records.map((rec, index) => {
+        const name = (rec && rec.name !== undefined && rec.name !== null) ? String(rec.name).trim() : 'Unknown';
+        const message = (rec && rec.message !== undefined && rec.message !== null) ? String(rec.message) : '';
+        const country = (rec && rec.country !== undefined && rec.country !== null) ? String(rec.country).trim() : 'Unknown';
+        return {
+          id: index + 1,
+          name: name,
+          message: message,
+          country: country,
+          _lowerName: name.toLowerCase() // Precomputed for instant startsWith matching
+        };
+      });
+
+      populateCountryFilter();
+      renderAlphabetBar();
+      applyFilterAndRender(true);
+    }
+
+    // Populate Country dropdown
+    function populateCountryFilter() {
+      const counts = new Map();
+      allRecords.forEach(r => {
+        const c = r.country || 'Unknown';
+        counts.set(c, (counts.get(c) || 0) + 1);
+      });
+
+      const sortedCountries = Array.from(counts.keys()).sort((a, b) => {
+        return counts.get(b) - counts.get(a); // most frequent first
+      });
+
+      countryFilter.innerHTML = '<option value="ALL">All Countries (' + allRecords.length + ')</option>';
+      sortedCountries.forEach(country => {
+        const opt = document.createElement('option');
+        opt.value = country;
+        opt.textContent = `${country} (${counts.get(country)})`;
+        countryFilter.appendChild(opt);
+      });
+      countryFilter.value = selectedCountry;
+    }
+
+    // Render Alphabet Quick Jump Bar (ALL, A-Z, #)
+    function renderAlphabetBar() {
+      alphabetBar.innerHTML = '';
+      const allBtn = document.createElement('button');
+      allBtn.className = `alpha-pill ${currentQuery === '' ? 'active' : ''}`;
+      allBtn.dataset.letter = '';
+      allBtn.textContent = 'ALL';
+      alphabetBar.appendChild(allBtn);
+
+      for (let i = 65; i <= 90; i++) {
+        const char = String.fromCharCode(i);
+        const btn = document.createElement('button');
+        btn.className = `alpha-pill ${currentQuery.toUpperCase() === char ? 'active' : ''}`;
+        btn.dataset.letter = char;
+        btn.textContent = char;
+        alphabetBar.appendChild(btn);
+      }
+
+      const numBtn = document.createElement('button');
+      numBtn.className = 'alpha-pill';
+      numBtn.dataset.letter = '#';
+      numBtn.textContent = '#';
+      alphabetBar.appendChild(numBtn);
+    }
+
+    alphabetBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.alpha-pill');
+      if (!btn) return;
+      const letter = btn.dataset.letter;
+      if (letter === '#') {
+        searchInput.value = '1';
+      } else {
+        searchInput.value = letter;
+      }
+      handleSearchInput();
+    });
+
+    // Update Alphabet bar active class
+    function syncAlphabetBar() {
+      const q = currentQuery.trim().toUpperCase();
+      const pills = alphabetBar.querySelectorAll('.alpha-pill');
+      pills.forEach(pill => {
+        if (q === '' && pill.dataset.letter === '') {
+          pill.classList.add('active');
+        } else if (q.length === 1 && pill.dataset.letter === q) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+    }
+
+    /* ==========================================================================
+       PREFIX SEARCH LOGIC — EXACT REQUIREMENT
+       item.name.toLowerCase().startsWith(query.toLowerCase())
+       ========================================================================== */
+    function applyFilterAndRender(resetPage = false) {
+      if (resetPage) currentPage = 1;
+
+      const q = currentQuery.trim().toLowerCase();
+
+      // Step 1: Prefix filter
+      let results = [];
+      if (!q) {
+        results = allRecords.slice();
+      } else {
+        // String.prototype.startsWith matching as strictly specified
+        results = allRecords.filter(item => item._lowerName.startsWith(q));
+      }
+
+      // Step 2: Country Filter
+      if (selectedCountry !== 'ALL') {
+        results = results.filter(item => item.country === selectedCountry);
+      }
+
+      // Step 3: Sort
+      if (currentSort === 'name_asc') {
+        results.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+      } else if (currentSort === 'name_desc') {
+        results.sort((a, b) => b.name.localeCompare(a.name, undefined, { sensitivity: 'base' }));
+      } else if (currentSort === 'country_asc') {
+        results.sort((a, b) => a.country.localeCompare(b.country, undefined, { sensitivity: 'base' }));
+      }
+      // 'default' retains original array order
+
+      filteredRecords = results;
+
+      // Update counters
+      const count = filteredRecords.length;
+      const total = allRecords.length;
+      bengaliCounter.textContent = `${toBengaliNumber(count)} টি মেসেজ পাওয়া গেছে`;
+      englishCounter.textContent = `(${count.toLocaleString()} matching of ${total.toLocaleString()} total)`;
+
+      // Render items
+      renderPage();
+      syncAlphabetBar();
+    }
+
+    // Render Cards in Batches / Pagination for high performance
+    function renderPage() {
+      messagesList.innerHTML = '';
+
+      if (filteredRecords.length === 0) {
+        messagesList.style.display = 'none';
+        paginationBar.style.display = 'none';
+        emptyState.style.display = 'block';
+        if (currentQuery) {
+          emptyTitle.textContent = `"${currentQuery}" দিয়ে কোনো মেসেজ মেলেনি`;
+          emptyDesc.textContent = `No SMS records start with "${currentQuery}". Remember: search strictly matches the START of the sender name.`;
+        } else {
+          emptyTitle.textContent = 'কোনো মেসেজ লোড করা নেই';
+          emptyDesc.textContent = 'Please import a TXT or JSON file, or click "Load Attached" to populate the archive.';
+        }
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      messagesList.style.display = 'flex';
+
+      const totalItems = filteredRecords.length;
+      let limit = totalItems;
+      let startIndex = 0;
+
+      if (pageSize !== 'all') {
+        const sizeNum = Number(pageSize);
+        startIndex = (currentPage - 1) * sizeNum;
+        limit = Math.min(startIndex + sizeNum, totalItems);
+      }
+
+      // Render fragment
+      const fragment = document.createDocumentFragment();
+      const queryTrim = currentQuery.trim();
+      const queryLen = queryTrim.length;
+
+      for (let i = startIndex; i < limit; i++) {
+        const item = filteredRecords[i];
+        const card = createCardElement(item, i + 1, queryTrim, queryLen);
+        fragment.appendChild(card);
+      }
+
+      messagesList.appendChild(fragment);
+
+      // Update pagination bar
+      if (pageSize === 'all' || totalItems <= Number(pageSize)) {
+        paginationBar.style.display = 'none';
+      } else {
+        paginationBar.style.display = 'flex';
+        const sizeNum = Number(pageSize);
+        const totalPages = Math.ceil(totalItems / sizeNum);
+        paginationStats.textContent = `Showing ${toBengaliNumber(startIndex + 1)}–${toBengaliNumber(limit)} of ${toBengaliNumber(totalItems)} (${(startIndex + 1).toLocaleString()}–${limit.toLocaleString()} of ${totalItems.toLocaleString()})`;
+
+        renderPageButtons(currentPage, totalPages);
+
+        if (limit >= totalItems) {
+          loadMoreBtn.style.display = 'none';
+        } else {
+          loadMoreBtn.style.display = 'inline-flex';
+        }
+      }
+    }
+
+    // Create a safe, XSS-free DOM Card
+    function createCardElement(item, displayIndex, queryTrim, queryLen) {
+      const card = document.createElement('article');
+      card.className = 'sms-card';
+
+      // --- Top Row ---
+      const topRow = document.createElement('div');
+      topRow.className = 'card-top';
+
+      const nameGroup = document.createElement('div');
+      nameGroup.className = 'card-name-group';
+
+      const idxBadge = document.createElement('span');
+      idxBadge.className = 'card-index';
+      idxBadge.textContent = `#${displayIndex}`;
+      nameGroup.appendChild(idxBadge);
+
+      const nameEl = document.createElement('h3');
+      nameEl.className = 'card-name';
+
+      // Highlight matched prefix in name
+      if (queryLen > 0 && item.name.toLowerCase().startsWith(queryTrim.toLowerCase())) {
+        const matchedPrefix = item.name.slice(0, queryLen);
+        const remainingName = item.name.slice(queryLen);
+
+        const mark = document.createElement('mark');
+        mark.className = 'highlight';
+        mark.textContent = matchedPrefix;
+
+        nameEl.appendChild(mark);
+        nameEl.appendChild(document.createTextNode(remainingName));
+      } else {
+        nameEl.textContent = item.name || 'Unknown';
+      }
+      nameGroup.appendChild(nameEl);
+      topRow.appendChild(nameGroup);
+
+      // Country pill badge
+      const countryBadge = document.createElement('div');
+      countryBadge.className = 'card-country-badge';
+
+      // SVG Globe
+      const globeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      globeSvg.setAttribute('class', 'globe-icon');
+      globeSvg.setAttribute('viewBox', '0 0 24 24');
+      globeSvg.setAttribute('fill', 'none');
+      globeSvg.setAttribute('stroke', 'currentColor');
+      globeSvg.setAttribute('stroke-width', '2');
+      globeSvg.innerHTML = '<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>';
+      countryBadge.appendChild(globeSvg);
+
+      const countryText = document.createElement('span');
+      countryText.textContent = item.country || 'Unknown';
+      countryBadge.appendChild(countryText);
+      topRow.appendChild(countryBadge);
+
+      card.appendChild(topRow);
+
+      // --- Body Message Text ---
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'card-body';
+      bodyEl.textContent = item.message; // Safe textContent avoids any XSS
+      card.appendChild(bodyEl);
+
+      // --- Footer Actions ---
+      const footer = document.createElement('div');
+      footer.className = 'card-footer';
+
+      // Check if message has an OTP or verification code (e.g. 4-8 digits)
+      const otpMatch = item.message.match(/(?:code|otp|pin|şifre|kod|código|رمز|驗證碼|parol)[\s:is=]+([0-9A-Z]{4,8})\b/i);
+      if (otpMatch && otpMatch[1]) {
+        const otpCode = otpMatch[1];
+        const otpTag = document.createElement('button');
+        otpTag.className = 'otp-tag';
+        otpTag.title = 'Click to copy verification code';
+        otpTag.innerHTML = `<span>Code: <strong>${escapeHtml(otpCode)}</strong></span>`;
+        otpTag.addEventListener('click', () => {
+          copyToClipboard(otpCode, 'Verification code copied: ' + otpCode);
+        });
+        footer.appendChild(otpTag);
+      }
+
+      // Copy Name Button
+      const copyNameBtn = document.createElement('button');
+      copyNameBtn.className = 'card-action-btn';
+      copyNameBtn.title = 'Copy sender name';
+      copyNameBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>Name</span>';
+      copyNameBtn.addEventListener('click', () => {
+        copyToClipboard(item.name, `Copied: "${item.name}"`);
+        copyNameBtn.classList.add('copied');
+        setTimeout(() => copyNameBtn.classList.remove('copied'), 1500);
+      });
+      footer.appendChild(copyNameBtn);
+
+      // Copy Message Button
+      const copyMsgBtn = document.createElement('button');
+      copyMsgBtn.className = 'card-action-btn';
+      copyMsgBtn.title = 'Copy full message';
+      copyMsgBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Copy SMS</span>';
+      copyMsgBtn.addEventListener('click', () => {
+        copyToClipboard(item.message, 'Message copied to clipboard');
+        copyMsgBtn.classList.add('copied');
+        copyMsgBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied!</span>';
+        setTimeout(() => {
+          copyMsgBtn.classList.remove('copied');
+          copyMsgBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Copy SMS</span>';
+        }, 1500);
+      });
+      footer.appendChild(copyMsgBtn);
+
+      card.appendChild(footer);
+      return card;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function copyToClipboard(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('Failed to copy');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Render Pagination Controls
+    function renderPageButtons(curr, total) {
+      pageNumberButtons.innerHTML = '';
+      if (total <= 1) return;
+
+      const createBtn = (page, label, isActive = false, isDisabled = false) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${isActive ? 'active' : ''}`;
+        btn.textContent = label;
+        btn.disabled = isDisabled;
+        btn.addEventListener('click', () => {
+          currentPage = page;
+          renderPage();
+          window.scrollTo({ top: document.getElementById('stickyHeader').offsetTop - 10, behavior: 'smooth' });
+        });
+        return btn;
+      };
+
+      // Previous button
+      pageNumberButtons.appendChild(createBtn(curr - 1, '‹ Prev', false, curr === 1));
+
+      // Page numbers window (e.g. 1 ... 4 5 6 ... 120)
+      const pagesToShow = [];
+      pagesToShow.push(1);
+      if (curr > 3) pagesToShow.push('...');
+      for (let p = Math.max(2, curr - 1); p <= Math.min(total - 1, curr + 1); p++) {
+        pagesToShow.push(p);
+      }
+      if (curr < total - 2) pagesToShow.push('...');
+      if (total > 1) pagesToShow.push(total);
+
+      pagesToShow.forEach(p => {
+        if (p === '...') {
+          const span = document.createElement('span');
+          span.style.color = 'var(--text-dim)';
+          span.style.padding = '0 4px';
+          span.textContent = '…';
+          pageNumberButtons.appendChild(span);
+        } else {
+          pageNumberButtons.appendChild(createBtn(p, toBengaliNumber(p), p === curr));
+        }
+      });
+
+      // Next button
+      pageNumberButtons.appendChild(createBtn(curr + 1, 'Next ›', false, curr === total));
+    }
+
+    // Load More Button
+    loadMoreBtn.addEventListener('click', () => {
+      const sizeNum = Number(pageSize);
+      const totalPages = Math.ceil(filteredRecords.length / sizeNum);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPage();
+      }
+    });
+
+    /* ==========================================================================
+       TXT & JSON PARSER IMPLEMENTATION
+       Handles multi-line messages, escaped \n, special chars, Unicode, arabic, emojis
+       ========================================================================== */
+    function parseSMSText(raw) {
+      if (!raw || typeof raw !== 'string') return [];
+      const lines = raw.split(/\r?\n/);
+      const records = [];
+      let current = null;
+      let state = 'IDLE';
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        // 1. Check for NAME header
+        const nameMatch = line.match(/^NAME\s*:\s*(.*)$/i);
+        if (nameMatch) {
+          if (current && (current.name || current.message)) {
+            records.push(current);
+          }
+          current = { name: nameMatch[1].trim(), message: '', country: '' };
+          state = 'AFTER_NAME';
+          continue;
+        }
+
+        // 2. Check for MESSAGE header
+        const msgMatch = line.match(/^MESSAGE\s*:\s*(.*)$/i);
+        if (msgMatch && current) {
+          current.message = msgMatch[1];
+          state = 'IN_MESSAGE';
+          continue;
+        }
+
+        // 3. Check for Country header
+        const countryMatch = line.match(/^Country\s*:\s*(.*)$/i);
+        if (countryMatch && current) {
+          current.country = countryMatch[1].trim();
+          records.push(current);
+          current = null;
+          state = 'IDLE';
+          continue;
+        }
+
+        // 4. In message continuation lines
+        if (state === 'IN_MESSAGE' && current) {
+          if (trimmed === '') {
+            // Check if blank line is merely separating from Country
+            let peekIdx = i + 1;
+            while (peekIdx < lines.length && lines[peekIdx].trim() === '') peekIdx++;
+            if (peekIdx < lines.length && /^Country\s*:/i.test(lines[peekIdx])) {
+              // ignore trailing spacer before Country
+            } else if (peekIdx < lines.length && /^NAME\s*:/i.test(lines[peekIdx])) {
+              // ignore
+            } else {
+              current.message += '\n';
+            }
+          } else {
+            current.message += (current.message ? '\n' : '') + line;
+          }
+        }
+      }
+
+      if (current && (current.name || current.message)) {
+        records.push(current);
+      }
+
+      // Decode literal \n sequences if present in raw string
+      records.forEach(r => {
+        if (r.message && r.message.includes('\\n')) {
+          r.message = r.message.replace(/\\n/g, '\n');
+        }
+      });
+
+      return records;
+    }
+
+    // Handle File Imports
+    txtFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      loadingBanner.style.display = 'block';
+      loadingText.textContent = `Reading and parsing ${file.name}...`;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const content = evt.target.result;
+          const parsed = parseSMSText(content);
+          if (parsed.length === 0) {
+            throw new Error('No valid records found matching NAME / MESSAGE / Country structure.');
+          }
+          initData(parsed);
+          showToast(`Successfully imported ${toBengaliNumber(parsed.length)} (${parsed.length.toLocaleString()}) SMS records!`);
+        } catch (err) {
+          alert('Error parsing TXT file: ' + err.message);
+        } finally {
+          loadingBanner.style.display = 'none';
+          txtFileInput.value = '';
+        }
+      };
+      reader.onerror = () => {
+        alert('Failed to read the file.');
+        loadingBanner.style.display = 'none';
+        txtFileInput.value = '';
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    jsonFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      loadingBanner.style.display = 'block';
+      loadingText.textContent = `Parsing JSON ${file.name}...`;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (!Array.isArray(data)) {
+            throw new Error('JSON data must be an array of objects.');
+          }
+          initData(data);
+          showToast(`Successfully imported ${toBengaliNumber(data.length)} (${data.length.toLocaleString()}) records from JSON!`);
+        } catch (err) {
+          alert('Error parsing JSON file: ' + err.message);
+        } finally {
+          loadingBanner.style.display = 'none';
+          jsonFileInput.value = '';
+        }
+      };
+      reader.onerror = () => {
+        alert('Failed to read JSON file.');
+        loadingBanner.style.display = 'none';
+        jsonFileInput.value = '';
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    // 1-Click Load Attached File (12,675 records)
+    loadAttachedBtn.addEventListener('click', async () => {
+      loadingBanner.style.display = 'block';
+      loadingText.textContent = 'Loading attached SMS archive (12,000+ records)...';
+
+      // Candidates to try fetching from local static server
+      const candidates = [
+        '/assets/aistudio/all_messages_combined_efaa562c.txt',
+        'assets/aistudio/all_messages_combined_efaa562c.txt',
+        './assets/aistudio/all_messages_combined_efaa562c.txt'
+      ];
+
+      let rawText = null;
+      for (const url of candidates) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            rawText = await resp.text();
+            break;
+          }
+        } catch (e) {
+          // ignore and try next
+        }
+      }
+
+      if (rawText) {
+        try {
+          const parsed = parseSMSText(rawText);
+          initData(parsed);
+          showToast(`Loaded ${toBengaliNumber(parsed.length)} (${parsed.length.toLocaleString()}) SMS records from archive!`);
+        } catch (err) {
+          showToast('Failed to parse attached archive: ' + err.message, false);
+        }
+      } else {
+        // If opened as local file:// or path cannot be fetched, guide user to Import TXT
+        showToast('Local file:// fetch blocked by browser. Please use "Import TXT" button to select your file.', false);
+        txtFileInput.click();
+      }
+      loadingBanner.style.display = 'none';
+    });
+
+    // Export JSON
+    exportJsonBtn.addEventListener('click', () => {
+      if (allRecords.length === 0) {
+        showToast('No records to export!', false);
+        return;
+      }
+      const dataToExport = allRecords.map(r => ({
+        name: r.name,
+        message: r.message,
+        country: r.country
+      }));
+      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sms-archive-export-${allRecords.length}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${toBengaliNumber(allRecords.length)} records to JSON`);
+    });
+
+    // Search Input Handling with 150ms debounce
+    function handleSearchInput() {
+      const val = searchInput.value;
+      currentQuery = val;
+      clearSearchBtn.style.display = val ? 'inline-flex' : 'none';
+      shortcutBadge.style.display = val ? 'none' : 'inline-flex';
+
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        applyFilterAndRender(true);
+      }, 150);
+    }
+
+    searchInput.addEventListener('input', handleSearchInput);
+
+    // Clear Search button
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      currentQuery = '';
+      clearSearchBtn.style.display = 'none';
+      shortcutBadge.style.display = 'inline-flex';
+      searchInput.focus();
+      applyFilterAndRender(true);
+    });
+
+    resetSearchEmptyBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      currentQuery = '';
+      clearSearchBtn.style.display = 'none';
+      shortcutBadge.style.display = 'inline-flex';
+      selectedCountry = 'ALL';
+      countryFilter.value = 'ALL';
+      applyFilterAndRender(true);
+    });
+
+    // Dropdown filters
+    countryFilter.addEventListener('change', () => {
+      selectedCountry = countryFilter.value;
+      applyFilterAndRender(true);
+    });
+
+    sortSelect.addEventListener('change', () => {
+      currentSort = sortSelect.value;
+      applyFilterAndRender(false);
+    });
+
+    pageSizeSelect.addEventListener('change', () => {
+      pageSize = pageSizeSelect.value;
+      currentPage = 1;
+      applyFilterAndRender(false);
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      // '/' to focus search
+      if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      // 'Escape' to clear and blur
+      if (e.key === 'Escape') {
+        if (helpModal.classList.contains('open')) {
+          helpModal.classList.remove('open');
+          return;
+        }
+        if (searchInput.value) {
+          searchInput.value = '';
+          currentQuery = '';
+          clearSearchBtn.style.display = 'none';
+          shortcutBadge.style.display = 'inline-flex';
+          applyFilterAndRender(true);
+        }
+        searchInput.blur();
+      }
+    });
+
+    // Back to Top functionality
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Help Modal Controls
+    helpBtn.addEventListener('click', () => helpModal.classList.add('open'));
+    closeHelpModal.addEventListener('click', () => helpModal.classList.remove('open'));
+    gotItBtn.addEventListener('click', () => helpModal.classList.remove('open'));
+    helpModal.addEventListener('click', (e) => {
+      if (e.target === helpModal) helpModal.classList.remove('open');
+    });
+
+    // Drag and Drop file loading support
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (file.name.endsWith('.txt')) {
+          txtFileInput.files = files;
+          txtFileInput.dispatchEvent(new Event('change'));
+        } else if (file.name.endsWith('.json')) {
+          jsonFileInput.files = files;
+          jsonFileInput.dispatchEvent(new Event('change'));
+        } else {
+          showToast('Please drop a .txt or .json SMS file', false);
+        }
+      }
+    });
+
+    // Bootstrapping: Auto-load attached archive file if accessible, else default to embedded SMS_DATA
+    (async function init() {
+      // Start with embedded sample data so page is never blank
+      initData(SMS_DATA);
+
+      // Attempt to load the 12,675 records from the attached archive file
+      try {
+        const resp = await fetch('/assets/aistudio/all_messages_combined_efaa562c.txt');
+        if (resp.ok) {
+          const txt = await resp.text();
+          const parsed = parseSMSText(txt);
+          if (parsed && parsed.length > 0) {
+            initData(parsed);
+          }
+        }
+      } catch (e) {
+        // file:// protocol or offline, embedded SMS_DATA is already loaded!
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "SMS Archive Viewer",
+  "description": "High-performance modern SMS archive viewer with prefix-matching search, 12,000+ record support, TXT and JSON import, and responsive dark glass UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
